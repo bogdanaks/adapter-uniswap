@@ -30,4 +30,10 @@ export default function (): void {
 
     expect(value).to.be.equals(50);
   });
+
+  it("getPairPrice: Pair doest exist", async function (): Promise<void> {
+    expect(
+      this.adapter.getPairPrice(this.owner.address, parseEther("10"))
+    ).to.be.revertedWith("Pair doesnt exist");
+  });
 }

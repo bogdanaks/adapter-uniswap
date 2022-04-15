@@ -64,10 +64,10 @@ describe("Test functions", async function () {
   });
 
   exchangePairTest();
-  // createPairTest();
-  // getPairTest();
-  // addLiquidityTest();
-  // removeLiquidityTest();
-  // addLiquidityETHTest();
-  // getPairPriceTest();
+  createPairTest();
+  getPairTest();
+  addLiquidityTest();
+  removeLiquidityTest();
+  addLiquidityETHTest();
+  getPairPriceTest();
 });
