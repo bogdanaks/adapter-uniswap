@@ -10,6 +10,16 @@ import "./IToken.sol";
 
 contract AdapterUniswap {
   event AddLiquidity(address indexed tokenA, address indexed tokenB, uint256 indexed liquidity);
+  event CreatePair(address indexed tokenA, address indexed tokenB);
+  event RemoveLiquidity(address indexed tokenA, address indexed tokenB, uint256 indexed liquidity);
+  event AddLiquidityETH(address indexed token, uint256 indexed liquidity);
+  event ExchangePair(
+    uint256 indexed amountIn,
+    uint256 indexed amountOutMin,
+    address[] path,
+    address indexed to,
+    uint256 deadline
+  );
 
   IUniswapV2Factory public factory;
   IUniswapV2Router02 public router;
@@ -20,6 +30,7 @@ contract AdapterUniswap {
   }
 
   function createPair(address tokenA, address tokenB) external returns (address pair) {
+    emit CreatePair(tokenA, tokenB);
     return factory.createPair(tokenA, tokenB);
   }
 
@@ -36,7 +47,7 @@ contract AdapterUniswap {
     uint256 amountBMin,
     address to,
     uint256 deadline
-  ) external returns (uint amountA, uint amountB, uint liquidity) {
+  ) external returns (uint256 amountA, uint256 amountB, uint256 liquidity) {
     (amountA, amountB, liquidity) = router.addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline);
     emit AddLiquidity(tokenA, tokenB, liquidity);
   }
@@ -52,6 +63,8 @@ contract AdapterUniswap {
   ) external returns (uint256 amountA, uint256 amountB) {
     address pair = factory.getPair(tokenA, tokenB);
     require(pair != address(0), "Pair doesnt exist");
+
+    emit RemoveLiquidity(tokenA, tokenB, liquidity);
 
     return router.removeLiquidity(
       tokenA,
@@ -71,8 +84,8 @@ contract AdapterUniswap {
     uint256 amountETHMin,
     address to,
     uint256 deadline
-  ) public payable {
-    router.addLiquidityETH{value: msg.value}(
+  ) public payable returns (uint256 amountToken, uint256 amountETH, uint256 liquidity) {
+    (amountToken, amountETH, liquidity) = router.addLiquidityETH{value: msg.value}(
       token,
       amountTokenDesired,
       amountTokenMin,
@@ -80,6 +93,7 @@ contract AdapterUniswap {
       to,
       deadline
     );
+    emit AddLiquidityETH(token, liquidity);
   }
 
   function approveToken(IToken token, uint256 amount) public {
@@ -104,6 +118,7 @@ contract AdapterUniswap {
     address to,
     uint256 deadline
   ) external payable returns (uint256[] memory amounts) {
-    return router.swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline);
+    (amounts) = router.swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline);
+    emit ExchangePair(amountIn, amountOutMin, path, to, deadline);
   }
 }
